@@ -8,12 +8,11 @@
 # S6: Decryption
 # S7: end
 
-from numpy import byte
 from sympy.ntheory.primetest import mr
 import random
 import secrets
 from math import sqrt
-from itertools import islice
+
 # use primes up to 37 for 2^64 bit integers for miller rabin test
 prime_list = [2, 3, 5, 7, 11, 13, 17, 19, 23, 31, 37]
 
@@ -77,26 +76,6 @@ def find_generator(n):
 # chosen 'g' for 'p' = 3
 
 
-# Diffie_hellman key exchange protocol
-def diffie_hellman():
-    p = 12015079137676779473
-    g = 3
-
-    secret_alice = secrets.randbits(32)
-    public_alice = pow(g, secret_alice, p)
-
-    secret_bob = secrets.randbits(32)
-    public_bob = pow(g, secret_bob, p)
-
-    # alice secret key from bob
-    sharedKey_alice = pow(public_bob, secret_alice, p)
-    sharedKey_bob = pow(public_alice, secret_bob, p)
-    print(sharedKey_alice)
-    print(sharedKey_bob)
-# alice sk: 1387309942, pk: 7811671445020318667, shared: 4579848827226567092
-# bob sk: 239411270, pk: 2732429492559587050, shared: 4579848827226567092
-
-
 # coverts given message to utf-8 bytes to relevant integers
 def convert_message():
     string = "identifier generation indulgence"
@@ -111,7 +90,64 @@ def split(n):
     message = str(convert_message())
     for i in range(0, len(message), n):
         list.append(int(message[i:i+n]))
-    print(str(list))
+    return list
 
 
-def encryption():
+# Diffie_hellman key exchange protocol
+# def diffie_hellman():
+#     p = 12015079137676779473
+#     g = 3
+
+#     secret_alice = secrets.randbits(32)
+#     public_alice = pow(g, secret_alice, p)
+#     print("secret alice: " + str(secret_alice))
+#     print("public alice: " + str(public_alice))
+
+#     secret_bob = secrets.randbits(32)
+#     public_bob = pow(g, secret_bob, p)
+#     print("secret bob: " + str(secret_bob))
+#     print("public bob: " + str(public_bob))
+
+#     # alice secret key from bob
+#     sharedKey_alice = pow(public_bob, secret_alice, p)
+#     sharedKey_bob = pow(public_alice, secret_bob, p)
+#     print(str(sharedKey_alice))
+#     print(sharedKey_bob)
+#     return sharedKey_alice
+
+
+def ElGamal_encrypt(g, p, public_alice):
+    # ElGamal encryption
+    encrypt_block_r = []
+    encrypt_block_c = []
+    blocks = split(17)
+    for i in blocks:
+        k = secrets.randbits(32)
+        r = pow(g, k, p)
+        encrypt_block_r.append(r)
+        # bob sends to alice by encrypting message using alice public key
+        x = pow(public_alice, k, p)
+        c = i * x
+        encrypt_block_c.append(c)
+    return encrypt_block_r, encrypt_block_c
+
+
+def ElGamal_decrypt(r, c, secret_alice):
+    return
+
+
+p = 12015079137676779473
+g = 3
+# Diffie Hellman keyexchange
+secret_alice = secrets.randbits(32)
+public_alice = pow(g, secret_alice, p)
+print("secret alice: " + str(secret_alice))
+print("public alice: " + str(public_alice))
+
+secret_bob = secrets.randbits(32)
+public_bob = pow(g, secret_bob, p)
+print("secret bob: " + str(secret_bob))
+print("public bob: " + str(public_bob))
+
+sharedKey_bob = pow(public_alice, secret_bob, p)
+print(str(sharedKey_bob))
