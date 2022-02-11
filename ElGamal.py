@@ -1,17 +1,19 @@
 # S1: generate large number (p)
 # S2: Miller-rabin prime number test
 # S3: Find number primitive root generator 'g' from p
-# S4: Perform diffie Hellman key exchange with 'g' and prime to generate pk and sk
+# S4: Perform diffie Hellman key exchange with 'g' and prime to generate pk and sk and shared key
 # S5: ElGamal Encryption (encoding)
 # S5.1 break message up
 # S5.2 Encode
 # S6: Decryption
 # S7: end
 
+from numpy import byte
 from sympy.ntheory.primetest import mr
 import random
 import secrets
 from math import sqrt
+from itertools import islice
 # use primes up to 37 for 2^64 bit integers for miller rabin test
 prime_list = [2, 3, 5, 7, 11, 13, 17, 19, 23, 31, 37]
 
@@ -75,6 +77,7 @@ def find_generator(n):
 # chosen 'g' for 'p' = 3
 
 
+# Diffie_hellman key exchange protocol
 def diffie_hellman():
     p = 12015079137676779473
     g = 3
@@ -92,3 +95,23 @@ def diffie_hellman():
     print(sharedKey_bob)
 # alice sk: 1387309942, pk: 7811671445020318667, shared: 4579848827226567092
 # bob sk: 239411270, pk: 2732429492559587050, shared: 4579848827226567092
+
+
+# coverts given message to utf-8 bytes to relevant integers
+def convert_message():
+    string = "identifier generation indulgence"
+    byte_format = string.encode('utf-8')
+    int_format = int.from_bytes(byte_format, "little")
+    return int_format
+
+
+# converts integers from convert_message() to string and breaks them up into blocks
+def split(n):
+    list = []
+    message = str(convert_message())
+    for i in range(0, len(message), n):
+        list.append(int(message[i:i+n]))
+    print(str(list))
+
+
+def encryption():
