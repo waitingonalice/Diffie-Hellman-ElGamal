@@ -8,6 +8,7 @@
 # S6: Decryption
 # S7: end
 
+from email import message
 from sympy.ntheory.primetest import mr
 import random
 import secrets
@@ -34,7 +35,6 @@ def is_prime(min, max):
 
 # From: https://www.geeksforgeeks.org/primitive-root-of-a-prime-number-n-modulo-n/
 def findPrimefactors(s, n):
-
     # Print the number of 2s that divide n
     while (n % 2 == 0):
         s.add(2)
@@ -116,10 +116,11 @@ def split(n):
 #     return sharedKey_alice
 
 
-def ElGamal_encrypt(g, p, public_alice):
+def encrypt(g, p, public_alice):
     # ElGamal encryption
     encrypt_block_r = []
     encrypt_block_c = []
+
     blocks = split(17)
     for i in blocks:
         k = secrets.randbits(32)
@@ -129,16 +130,36 @@ def ElGamal_encrypt(g, p, public_alice):
         x = pow(public_alice, k, p)
         c = i * x
         encrypt_block_c.append(c)
+        print('r: ', r)
+        print('c: ', c)
     return encrypt_block_r, encrypt_block_c
 
 
-def ElGamal_decrypt(r, c, secret_alice):
-    return
+def decrypt(encrypt_block_r, encrypt_block_c, secret_alice, p):
+    decrypt_block_r = []
+    # this block takes in r * c values to attain the same values as blocks
+    message_block_c = []
+
+    blocks = split(17)
+    for i in blocks:
+        x = pow(encrypt_block_r[blocks.index(i)], secret_alice, p)
+        inverse_x = pow(x, -1, p)
+        decrypt_block_r.append(inverse_x)
+
+        decrypt_block_c = (encrypt_block_c[blocks.index(i)] * inverse_x) % p
+        message_block_c.append(decrypt_block_c)
+
+    # converts every ele in decrypted_c into a string, joins all ele, then converts back to int
+    strings = [str(integer) for integer in message_block_c]
+    combine_strings = "".join(strings)
+    decrypted_message_c = int(combine_strings)
+    return decrypted_message_c
 
 
+#global keys
 p = 12015079137676779473
 g = 3
-# Diffie Hellman keyexchange
+# Diffie Hellman key exchange
 secret_alice = secrets.randbits(32)
 public_alice = pow(g, secret_alice, p)
 print("secret alice: " + str(secret_alice))
@@ -150,4 +171,16 @@ print("secret bob: " + str(secret_bob))
 print("public bob: " + str(public_bob))
 
 sharedKey_bob = pow(public_alice, secret_bob, p)
-print(str(sharedKey_bob))
+print("Shared Key: " + str(sharedKey_bob))
+
+
+encrypt_block_r, encrypt_block_c = encrypt(g, p, public_alice)
+dmsg = decrypt(encrypt_block_r, encrypt_block_c, secret_alice, p)
+
+print("Original block of message: ", convert_message())
+print("Decrypted block of message: ", dmsg)
+
+# converts int to string
+recover_bytes = dmsg.to_bytes((dmsg.bit_length()+7//8), 'little')
+decode = recover_bytes.decode('utf-8')
+print('Decoded message: ', decode)
