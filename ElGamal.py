@@ -8,7 +8,6 @@
 # S6: Decryption
 # S7: end
 
-from email import message
 from sympy.ntheory.primetest import mr
 import random
 import secrets
@@ -23,7 +22,7 @@ def generate_rand_number(min, max):
     return random.randrange(min, max, 2)
 
 
-# use miller rabin to test if number is prime
+# use miller rabin probabilistic primality test to check if the number is a strong probable prime
 def is_prime(min, max):
 
     while True:
@@ -31,6 +30,14 @@ def is_prime(min, max):
         if mr(p, prime_list) == True:
             return p
 # chosen prime p = 12015079137676779473
+
+
+# use fermat's little theorem deterministic primality test to check if number is indeed a prime
+def fermats_little_theorem(a, p):
+    if pow(a, p-1, p) == 1:
+        print("value: ", p, 'is a prime')
+    else:
+        print("Not a prime")
 
 
 # From: https://www.geeksforgeeks.org/primitive-root-of-a-prime-number-n-modulo-n/
@@ -116,7 +123,7 @@ def split(n):
 #     return sharedKey_alice
 
 
-def encrypt(g, p, public_alice):
+def encrypt(g, p, public_key):
     # ElGamal encryption
     encrypt_block_r = []
     encrypt_block_c = []
@@ -127,7 +134,7 @@ def encrypt(g, p, public_alice):
         r = pow(g, k, p)
         encrypt_block_r.append(r)
         # bob sends to alice by encrypting message using alice public key
-        x = pow(public_alice, k, p)
+        x = pow(public_key, k, p)
         c = i * x
         encrypt_block_c.append(c)
         print('r: ', r)
@@ -135,14 +142,14 @@ def encrypt(g, p, public_alice):
     return encrypt_block_r, encrypt_block_c
 
 
-def decrypt(encrypt_block_r, encrypt_block_c, secret_alice, p):
+def decrypt(encrypt_block_r, encrypt_block_c, secret_key, p):
     decrypt_block_r = []
     # this block takes in r * c values to attain the same values as blocks
     message_block_c = []
 
     blocks = split(17)
     for i in blocks:
-        x = pow(encrypt_block_r[blocks.index(i)], secret_alice, p)
+        x = pow(encrypt_block_r[blocks.index(i)], secret_key, p)
         inverse_x = pow(x, -1, p)
         decrypt_block_r.append(inverse_x)
 
@@ -159,6 +166,8 @@ def decrypt(encrypt_block_r, encrypt_block_c, secret_alice, p):
 #global keys
 p = 12015079137676779473
 g = 3
+a = 5
+fermats_little_theorem(a, p)
 # Diffie Hellman key exchange
 secret_alice = secrets.randbits(32)
 public_alice = pow(g, secret_alice, p)
@@ -173,7 +182,6 @@ print("public bob: " + str(public_bob))
 sharedKey_bob = pow(public_alice, secret_bob, p)
 print("Shared Key: " + str(sharedKey_bob))
 
-
 encrypt_block_r, encrypt_block_c = encrypt(g, p, public_alice)
 dmsg = decrypt(encrypt_block_r, encrypt_block_c, secret_alice, p)
 
@@ -181,6 +189,6 @@ print("Original block of message: ", convert_message())
 print("Decrypted block of message: ", dmsg)
 
 # converts int to string
-recover_bytes = dmsg.to_bytes((dmsg.bit_length()+7//8), 'little')
+recover_bytes = dmsg.to_bytes((dmsg.bit_length()), 'little')
 decode = recover_bytes.decode('utf-8')
 print('Decoded message: ', decode)
