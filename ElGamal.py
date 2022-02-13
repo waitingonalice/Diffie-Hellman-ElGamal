@@ -83,7 +83,7 @@ def find_generator(n):
 # chosen 'g' for 'p' = 3
 
 
-# coverts given message to utf-8 bytes to relevant integers
+# coverts given message from utf-8 strings to bytes to relevant integers
 def convert_message():
     string = "identifier generation indulgence"
     byte_format = string.encode('utf-8')
