@@ -32,7 +32,7 @@ def is_prime(min, max):
 # chosen prime p = 12015079137676779473
 
 
-# use fermat's little theorem deterministic primality test to check if number is indeed a prime
+# use fermat's little theorem to check if number is indeed a prime
 def fermats_little_theorem(a, p):
     if pow(a, p-1, p) == 1:
         print("value: ", p, 'is a prime')
