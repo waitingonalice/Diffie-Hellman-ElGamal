@@ -22,17 +22,18 @@ def generate_rand_number(min, max):
     return random.randrange(min, max, 2)
 
 
-# use miller rabin probabilistic primality test to check if the number is a strong probable prime
+# use miller rabin probabilistic primality test to check if the number is a prime
 def is_prime(min, max):
 
     while True:
         p = generate_rand_number(min, max)
+        # print(p)
         if mr(p, prime_list) == True:
             return p
 # chosen prime p = 12015079137676779473
 
 
-# use fermat's little theorem to check if number is indeed a prime
+# use fermat's little theorem to check if number is a probable prime
 def fermats_little_theorem(a, p):
     if pow(a, p-1, p) == 1:
         print("value: ", p, 'is a prime')
@@ -41,17 +42,17 @@ def fermats_little_theorem(a, p):
 
 
 # From: https://www.geeksforgeeks.org/primitive-root-of-a-prime-number-n-modulo-n/
-def findPrimefactors(s, n):
+def find_Prime_factors(s, n):
     # Print the number of 2s that divide n
     while (n % 2 == 0):
         s.add(2)
         n = n // 2
 
-    # n must be odd at this po. So we can
-    # skip one element (Note i = i +2)
+    # After dividing by prime factor 2, n must be odd.
+    # skip one element and start from the next prime which is 3 and so on... (Note i = i +2)
     for i in range(3, int(sqrt(n)), 2):
 
-        # While i divides n, print i and divide n
+        # While i divides n, add all prime factors i and divide n
         while (n % i == 0):
 
             s.add(i)
@@ -65,19 +66,20 @@ def findPrimefactors(s, n):
 
 # uses Euler's Totient to find primitive root of a prime AKA 'g'
 # From: https://www.geeksforgeeks.org/primitive-root-of-a-prime-number-n-modulo-n/
-def find_generator(n):
+def find_generator(p):
     s = set()
-    phi = n - 1
-    findPrimefactors(s, phi)
+    phi = p - 1
+    find_Prime_factors(s, phi)
 
-    for r in range(2, phi+1):
+    for g in range(2, phi+1):
         flag = False
-        for it in s:
-            if(pow(r, phi//it, n) == 1):
+        for q in s:
+            n = phi//q
+            if(pow(g, n, p) == 1):
                 flag = True
                 break
         if (flag == False):
-            return r
+            return g
 
     return -1
 # chosen 'g' for 'p' = 3
@@ -128,7 +130,6 @@ def encrypt(g, p, public_key):
     encrypt_block_r = []
     encrypt_block_c = []
 
-    blocks = split(17)
     for i in blocks:
         k = secrets.randbits(32)
         r = pow(g, k, p)
@@ -147,13 +148,12 @@ def decrypt(encrypt_block_r, encrypt_block_c, secret_key, p):
     # this block takes in r * c values to attain the same values as blocks
     message_block_c = []
 
-    blocks = split(17)
-    for i in blocks:
-        x = pow(encrypt_block_r[blocks.index(i)], secret_key, p)
+    for i in range(len(blocks)):
+        x = pow(encrypt_block_r[i], secret_key, p)
         inverse_x = pow(x, -1, p)
         decrypt_block_r.append(inverse_x)
 
-        decrypt_block_c = (encrypt_block_c[blocks.index(i)] * inverse_x) % p
+        decrypt_block_c = (encrypt_block_c[i] * inverse_x) % p
         message_block_c.append(decrypt_block_c)
 
     # converts every ele in decrypted_c into a string, joins all ele, then converts back to int
@@ -166,8 +166,9 @@ def decrypt(encrypt_block_r, encrypt_block_c, secret_key, p):
 #global keys
 p = 12015079137676779473
 g = 3
-a = 5
-fermats_little_theorem(a, p)
+a = 3
+blocks = split(17)
+
 # Diffie Hellman key exchange
 secret_alice = secrets.randbits(32)
 public_alice = pow(g, secret_alice, p)
@@ -180,6 +181,7 @@ print("secret bob: " + str(secret_bob))
 print("public bob: " + str(public_bob))
 
 sharedKey_bob = pow(public_alice, secret_bob, p)
+sharedKey_alice = pow(public_bob, secret_alice, p)
 print("Shared Key: " + str(sharedKey_bob))
 
 encrypt_block_r, encrypt_block_c = encrypt(g, p, public_alice)
